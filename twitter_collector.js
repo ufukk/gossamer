@@ -3,16 +3,16 @@ var collector = require('./collector')
 var util = require('util')
 
 function twitterCollector(options) {
-	if(!(options && 'keywords' in options))
+	if(!options.keywords)
 		throw new Error('Missing keywords')
 
-	if(!(options && 'cursor' in options))
+	if(!options.cursor)
 		throw new Error('Missing cursor')
 
 	collector.call(this, options)
 	
-	this.keywords = options['keywords']
-	this.cursor = options['cursor']
+	this.keywords = options.keywords
+	this.cursor = options.cursor
 	this.positionColumn = 'id_str'
 
 	var self = this
