@@ -42,5 +42,7 @@ Mining the social web: https://github.com/ptwobrussell/Mining-the-Social-Web-2nd
 		(PDF'ler webden silinmesi ihtimaline karşı indirilirse iyi olur.)
 
 Fast and Accurate Traffic Matrix Measurement Using Adaptive Cardinality Counting - http://gridsec.usc.edu/files/TR/TR-2005-12.pdf
+
 Loglog Counting of Large Cardinalities - http://hci.iwr.uni-heidelberg.de/Staff/ukoethe/lehre/AlgorithmsForBigData/durand_03_loglog-counting.pdf
+
 Cardinality estimation: http://blog.notdot.net/2012/09/Dam-Cool-Algorithms-Cardinality-Estimation
