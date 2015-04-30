@@ -46,3 +46,9 @@ Fast and Accurate Traffic Matrix Measurement Using Adaptive Cardinality Counting
 Loglog Counting of Large Cardinalities - http://hci.iwr.uni-heidelberg.de/Staff/ukoethe/lehre/AlgorithmsForBigData/durand_03_loglog-counting.pdf
 
 Cardinality estimation: http://blog.notdot.net/2012/09/Dam-Cool-Algorithms-Cardinality-Estimation
+
+##Dersler
+
+MIT - Mathematics for computer science: http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/
+
+
