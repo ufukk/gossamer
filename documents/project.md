@@ -33,3 +33,22 @@ API sağlayan kaynaklar, 'anahtar kelimeler' üzerinden takip edilecek. Ancak ka
 
 ++Veri sürekliliğini sağlamak: Hem güncel verileri yayınlandıktan hemen sonra toplamak hem de takip edilen sayfaların/kısımların (gateway?) verilerini geriye doğru da toplayabilmek.
 
+#####Facebook
+
+Facebook Graph API kullanımını üç tür kural grubu ile sınırlıyor; Kullanıcı bazlı kısıtlar, App bazlı kısıtlar ve API Metod bazlı özel kısıtlar. Kullanıcı bazlı kısıtlar, doğrulanmış bir kullanıcının kimliği ile yapılan istekler için geçerli. App bazlı kısıtlar, App üzerinden yapılan kullanıcı kimliği kullanılsın ya da kullanılmasın tüm istekler için geçerli. API metod bazlı özel kısıtlar ise kimi API metodları için, yukarıdakilerden daha dar başka sınırlar getiriyor. Özel sınırlar içeren metodlara örnekler: "feed post and get, comment, event, checkin, search, payment"
+
+Bunlardan başka Facebook kullanım sınırlarını istek sayısı ile değil, her bir isteğin harcadığı sistem kaynaklarına göre belirliyor ve bu çerçeveyi açıklamıyor. Sınırlara takılmamak için önerilen; istekleri gruplamak (Batch API), karmaşık isteklerden kaçınmak ve okunan fieldleri asgari sayıya indirmek. Ayrıca API yanıtlarındaki gömülü verileri (Post altındaki User nesneleri vb.) okumamak muhtemelen daha çok istek yapılmasını sağlar.
+
+######Twitter
+
+Twitter sunduğu iki farklı API için farklı sınırlar belirliyor. Search API için kullanıcı ve App bazlı iki tip kural grubu mevcut. Ancak App bazlı kurallar, kullandıkları kullanıcı kimlikleri önemsenmeksizin tüm Search API isteklerini kapsıyor. Search API, 15dk lık pencereler için 15 sorgu olanağı sağlıyor. Servisten dönen tweet sayısı azami 100 olduğu için okunabilecek tweet sayısı da saatte 15 * 100 * 4, günde ise 15 * 100 * 4 * 24 olacak. (Günde yaklaşık 150.000)
+
+Stream API, sürekli ve tek bağlantı olanağı sunuyor ve her bir App için tek bağlantıyı mecbur kılıyor. Her bağlantı azami 400 anahtar kelimeyi takip edebiliyor. Twitter, bir App - bir IP çözümünü öneriyor ancak sık bağlantı kopması - yeniden bağlanma isteği olmaz ise birden çok bağlantı kurup takip edilen anahtar kelimeleri katlamak mümkün olabilir.
+
+######RSS
+
+RSS'i okunacak her web sitesinin sınırları farklı olmasına rağmen, günde birkaç isteğin verileri taze tutmak için yeteceği varsayılabilir. RSS'ler ilk kez okunduklarında, içerik sayfalarının tümünün ayın anda okunmasının doğuracağı sorunlar, RSS'ten toplananan içerik linklerini gecikmeli okuyarak çözülebilir.   
+
+
+
+
