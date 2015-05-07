@@ -1,4 +1,4 @@
-var collector = require('./collector')
+var Collector = require('./collector')
 var FB = require('fb')
 var util = require('util')
 
@@ -8,8 +8,6 @@ function FacebookPageCollector(options) {
 	if (!(options && 'pageId' in options))
 		throw new Error('Missing pageId')
 
-	collector.call(this, options)
-
 	this.pageId = options['pageId']
 	this.q = 'q' in options ? options['q'] : null
 	this.since = 'since' in options ? Date.parse(options['since']) : null
@@ -18,7 +16,6 @@ function FacebookPageCollector(options) {
 	this.positionColumn = 'created_time'
 	this.fields = ['id', 'created_time', 'message', 'is_popular', 'comments.limit(100).summary(true)', 'likes.limit(1).summary(true)']
 	var self = this
-
 
 	this.parameters = function() {
 		params = {fields: self.fields.join(','), limit: self.limit}
@@ -39,14 +36,13 @@ function FacebookPageCollector(options) {
 			data = result['data'].map(function(item) {
 				if(!('comments' in item))
 					return item
-				return Object.merge(item, {commentCursor: Object.merge(item.comments.paging, self.__cursorInfo('created_time', item.comments.data) )})
+				return Object.merge(item, {commentCursor: Object.merge(item.comments.paging, Collector.cursorInfo('created_time', item.comments.data) )})
 			})
-			forwardParameters = self.queryParameters(result['paging']['previous'])
-			backwardParameters = self.queryParameters(result['paging']['next'])
-			callback({contents: data, cursor: Object.merge({forward: forwardParameters, backward: backwardParameters}, self.cursorInfo(result['data']))})
+			forwardParameters = Collector.queryParameters(result['paging']['previous'])
+			backwardParameters = Collector.queryParameters(result['paging']['next'])
+			callback({contents: data, cursor: Object.merge({forward: forwardParameters, backward: backwardParameters}, Collector.cursorInfo(self.positionColumn, result['data']))})
 		})
 	}
 }
 
-util.inherits(FacebookPageCollector, collector)
 module.exports = FacebookPageCollector

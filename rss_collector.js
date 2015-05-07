@@ -1,4 +1,4 @@
-var collector = require('./collector');
+var Collector = require('./collector');
 var http = require('http');
 var parseString = require('xml2js').parseString
 var util = require('util')
@@ -8,7 +8,6 @@ function RssCollector(options) {
 
 	if(!options.url)
 		throw new Error('Missing url')
-	collector.call(this, options)
 	
 	this.url = options.url
 	this.positionColumn = 'lastBuildDate'
@@ -29,12 +28,11 @@ function RssCollector(options) {
 					result.rss.channel[0].item.forEach(function(item) {
 						contents[contents.length] = {title: item.title[0].trim(), description: item.description[0].trim(), lastBuildDate: item.lastBuildDate[0]}
 					})
-					callback({contents: contents, cursor: self.cursorInfo(contents)})
+					callback({contents: contents, cursor: Collector.cursorInfo(self.positionColumn, contents)})
 				})
 			})
 		}, {headers: {'User-Agent': __USER_AGENT}});
 	}
 }
 
-util.inherits(RssCollector, collector);
 module.exports = RssCollector
