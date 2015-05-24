@@ -56,7 +56,7 @@ describe('RSS collector collects content and links from rss feeds.', function() 
 
 	it('should return cursor information', function(done) {
 		mockResult()
-		var collector = new RssCollector({cursor: {id: 'http://reddit.com/feed/'});
+		var collector = new RssCollector({cursor: {id: 'http://reddit.com/feed/'}});
 		collector.readSource(function(result) {
 			assert.equal(result.cursor.newest, Date.parse('Fri, 28 Nov 2014 15:48:14 +0000'))
 			assert.equal(result.cursor.oldest, Date.parse('Wed, 26 Nov 2014 15:48:14 +0000'))
