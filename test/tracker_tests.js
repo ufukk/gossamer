@@ -33,7 +33,11 @@ describe('Trackers catalog and classify locations that collectors read', functio
 
 	it('should generate _id for locations', function() {
 		assert.equal('facebook_page_101', Tracker.idForLocation({source: 'facebook', type: 'page', 'id': 101}));
-	})
+	});
+
+	it('should generate _id for urls', function() {
+		assert.equal('reddit_rss_reddit.com/feed/', Tracker.idForLocation({source: 'reddit', type: 'rss', 'id': 'http://reddit.com/feed/'}));
+	});
 
 	it('should merge location fields with default cursor properties', function() {
 		var cursor = Tracker.toCursor({source: 'facebook', type :'page', 'id': 101});

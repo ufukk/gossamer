@@ -4,7 +4,7 @@ var Repo = require('./repository');
 var Tracker = {
 
     idForLocation: function (location) {
-        return [location.source, location.type, location.id].join('_');
+        return [location.source, location.type, String(location.id).replace(/http(s*):\/\//, '')].join('_');
     },
 
     toCursor: function (location) {
