@@ -3,13 +3,14 @@ var util = require('util')
 var FB = require('fb')
 
 function FacebookCommentCollector(options) {
-	if (!(options && 'id' in options))
-		throw new Error('Missing id')
+	options = options || {};
+	if (!options.cursor)
+		throw new Error('Missing cursor');
 
-	this.id = options['id']
-	this.q = 'q' in options ? options['q'] : null
-	this.limit = 'limit' in options ? options['limit'] : 100
-	this.positionColumn = 'created_time'
+	this.id = options.cursor.id;
+	this.q = options.q || null;
+	this.limit = options.cursor.limit || 100;
+	this.positionColumn = 'created_time';
 	var self = this
 
 	FacebookCommentCollector.prototype.parameters = function() {

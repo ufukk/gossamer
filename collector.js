@@ -1,7 +1,6 @@
 require('sugar')
 
 var Collector =  (function() {
-	
 	return {
 		cursorInfo: function(column, data) {
 			singleColumnList = data.map(function(item) {

@@ -36,7 +36,7 @@ var mockContents = '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><ch
 
 describe('RSS collector collects content and links from rss feeds.', function() {
 
-	it('should throw an error if url is not set', function() {
+	it('should throw an error if cursor is not set', function() {
 		assert.throws(function() {
 			var collector = new RssCollector();
 		}, Error);
@@ -44,7 +44,7 @@ describe('RSS collector collects content and links from rss feeds.', function() 
 
 	it('should collect title & description from rss feed', function(done) {
 		mockResult()
-		var collector = new RssCollector({url: 'http://reddit.com/feed/'})
+		var collector = new RssCollector({cursor: {id: 'http://reddit.com/feed/'}});
 		collector.readSource(function(result) {
 			assert.equal(result.contents.length, 4)
 			assert.equal(result.contents[0].description, 'description I')
@@ -56,7 +56,7 @@ describe('RSS collector collects content and links from rss feeds.', function() 
 
 	it('should return cursor information', function(done) {
 		mockResult()
-		var collector = new RssCollector({url: 'http://reddit.com/feed/'})
+		var collector = new RssCollector({cursor: {id: 'http://reddit.com/feed/'});
 		collector.readSource(function(result) {
 			assert.equal(result.cursor.newest, Date.parse('Fri, 28 Nov 2014 15:48:14 +0000'))
 			assert.equal(result.cursor.oldest, Date.parse('Wed, 26 Nov 2014 15:48:14 +0000'))

@@ -23,21 +23,21 @@ function mockResult(postId) {
 
 describe('Facebook commment collector, collect object comments according to cursor info', function() {
 
-	it('should throw an error when id is not given', function() {
+	it('should throw an error when `cursor` is not given', function() {
 		assert.throws(function() {
-			var collector = new FacebookCommentCollector()
+			var collector = new FacebookCommentCollector();
 		}, Error)
 	})
 
 	it('should accept q, limit parameters', function() {
-		var collector = new FacebookCommentCollector({id: 101, q: 'foo', limit: 50})
+		var collector = new FacebookCommentCollector({cursor: {id: 101, limit: 50}, q: 'foo'});
 		assert.equal(collector.q, 'foo')
 		assert.equal(collector.limit, 50)
 	})
 
 	it('should retrieve comments and cursor data', function(done) {
 		mockResult(101)
-		var collector = new FacebookCommentCollector({id: 101})
+		var collector = new FacebookCommentCollector({cursor: {id: 101}});
 		collector.readSource(function(result) {
 			assert.equal(result.contents.length, 4)
 			assert.ok(Object.equal(result.cursor, {newest: Date.parse('2015-04-29T15:40:28+0000'), oldest: Date.parse('2015-04-28T15:10:28+0000'), after: '__after', before: '__before'}))
