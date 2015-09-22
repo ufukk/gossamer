@@ -7,9 +7,9 @@ var mockCollector = function(options, body, miliseconds) {
       var parent = this;
       this.cursor = options.cursor;
       this.readSource = function (callback) {
-      setTimeout(function() {
-          callback.call({parent: parent}, {contents: {body: body}});
-      }, miliseconds);
+        setTimeout(function() {
+            callback.call({parent: parent}, {contents: {body: body}});
+        }, miliseconds);
     }
   }
 
@@ -18,8 +18,8 @@ describe('Spawners create collectors and keep a given number of them alive concu
   it('should accept collectors statically', function () {
     var controller = new Spawner.SpawnerController();
     controller.addCollectors([
-      new mockCollector({cursor: {id: 101}}),
-      new mockCollector({cursor: {id: 102}})
+      new mockCollector({cursor: {id: 101}}, '', 49),
+      new mockCollector({cursor: {id: 102}}, '', 50)
     ]);
     assert.equal(controller.collectors.length, 2);
     assert.equal(controller.collectors[0].cursor.id, 101);
@@ -50,11 +50,11 @@ describe('Spawners create collectors and keep a given number of them alive concu
 
     }});
     controller.addCollectors([
-      new mockCollector({cursor: {id: 1001}}, '.content.'),
-      new mockCollector({cursor: {id: 1002}}, '.content.'),
-      new mockCollector({cursor: {id: 1003}}, '.content.'),
-      new mockCollector({cursor: {id: 1004}}, '.content.'),
-      new mockCollector({cursor: {id: 1005}}, '.content.')
+      new mockCollector({cursor: {id: 1001}}, '.content.', 150),
+      new mockCollector({cursor: {id: 1002}}, '.content.', 151),
+      new mockCollector({cursor: {id: 1003}}, '.content.', 152),
+      new mockCollector({cursor: {id: 1004}}, '.content.', 153),
+      new mockCollector({cursor: {id: 1005}}, '.content.', 154)
     ]);
     assert.equal(controller.collectors.length, 5);
     controller.startCollectors();
@@ -90,7 +90,7 @@ describe('Spawners create collectors and keep a given number of them alive concu
       assert.equal(controller.runningCollectors[0].cursor.id, 104);
       assert.equal(controller.runningCollectors[2].cursor.id, 106);
       done();
-    }, 100);
+    }, 110);
   });
 
 });

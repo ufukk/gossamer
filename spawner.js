@@ -3,6 +3,7 @@ var S = (function () {
   var spawnerController = function (options) {
       options = options || {};
       this.number = options.number;
+      this.interval = options.interval || 0;
       this.collectorProvider = options.collectorProvider;
       this.collectorDataReceived = options.collectorDataReceived;
       this.collectors = [];
@@ -25,28 +26,41 @@ var S = (function () {
         var self = this;
         var count = this.number - this.runningCollectors.length;
         for(i = 0; i < count; i++) {
-          if(this.collectors.length == 0)
+          if(this.collectors.length == 0) {
             return;
-          var collector = self.collectors.splice(0, 1)[0];
-          this.runningCollectors.push(collector);
-          collector.readSource(function(result) {
+          }
+          self.readCollector(self.collectors.splice(0, 1)[0], self.interval * (i + 1));
+        }
+      }
+
+      spawnerController.prototype.readCollector = function(collector, period) {
+        var self = this;
+          self.runningCollectors.push(collector);
+          setTimeout(function() {
+            collector.readSource(function(result) {
             self.collectorDataReceived(result);
             var index = self.runningCollectors.indexOf(this.parent);
             if(index > -1) {
               self.runningCollectors.splice(index, 1);
             }
-            self.updateCollectors();
+            self.checkAndUpdateControllers();
           });
-        }
+          }, period);
       }
 
       spawnerController.prototype.checkAndUpdateControllers = function() {
         var self = this;
         if(this.collectors.length < this.number) {
+          if(typeof(this.collectorProvider) != 'function')
+            return;
           this.collectorProvider(this.number - this.collectors.length, function (err, collectors) {
           if(err)
             console.log(err);
           
+          if(collectors.length == 0) {
+            return;
+          }
+
           self.addCollectors(collectors);
           self.updateCollectors();
           });
@@ -56,7 +70,7 @@ var S = (function () {
       }
 
       spawnerController.prototype.startCollectors = function() {
-        this.updateCollectors();
+        this.checkAndUpdateControllers();
       }
     }
 
