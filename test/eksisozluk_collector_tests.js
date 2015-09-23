@@ -51,7 +51,7 @@ describe('EksiSozlukCollector collects data from eksi sozluk', function () {
   it('should read content & page count', function(done) {
     mockResult();
 
-    var collector = new EksiSozlukCollector({cursor: {keyword: 'test content', page: 2}});
+    var collector = new EksiSozlukCollector({cursor: {id: 'test content', page: 2}});
     collector.readSource(function(result) {
       assert.equal(result.contents.length, 3);
       assert.equal(result.contents[0].id, '101');
@@ -60,8 +60,8 @@ describe('EksiSozlukCollector collects data from eksi sozluk', function () {
       assert.equal(result.contents[2].author, 'author3');
       assert.equal(result.contents[0].body, '.test content 1.');
       assert.equal(result.contents[2].body, '.test content 3.');
-      assert.equal(result.contents[0].date, Date.parse('01.01.2015 15:15'));
-      assert.equal(result.contents[2].date, Date.parse('01.03.2015 15:05'));
+      assert.equal(result.contents[0].contentDate, Date.parse('01.01.2015 15:15'));
+      assert.equal(result.contents[2].contentDate, Date.parse('01.03.2015 15:05'));
       assert.equal(result.cursor.currentPage, 1);
       assert.equal(result.cursor.pageCount, 3);
       assert.equal(result.cursor.newest, Date.parse('01.03.2015 15:05'));

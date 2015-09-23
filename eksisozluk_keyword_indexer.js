@@ -36,7 +36,7 @@ var S = (function() {
             var contents = [];
             var now = Date.now();
             xmlObject.ul.li.forEach(function(item) {
-              contents.push({id: item.a[0]._, collectedAt: now});
+              contents.push({source: 'eksisozluk', type: 'page', id: item.a[0]._.trim(), collectedAt: now});
             });
 
             callback({contents: contents, cursor: cursor});
