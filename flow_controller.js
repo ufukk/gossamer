@@ -44,8 +44,6 @@ var S = (function () {
         if(err)
           console.log(err);
 
-        console.log(result);
-
         var collectors = [];
         result.forEach(function(cursor) {
           cursor.direction = Tracker.directionForCursor(cursor);
@@ -63,7 +61,6 @@ var S = (function () {
           if(indexSpawner.collectors.length == 0 && indexSpawner.runningCollectors.length == 1) {
             Object.merge(collector.cursor, result.cursor);
             self.prepareCursorToSave(collector.cursor);
-            console.log(collector.cursor);
             self.indexerRunning = false;
 
             Tracker.updateCursors([collector.cursor]);
@@ -75,11 +72,10 @@ var S = (function () {
 
     FlowController.prototype.saveContents = function(contents, callback) {
       this.contentBuffer = this.contentBuffer.concat(contents);
-
       var buffer = this.contentBuffer.splice(0, this.contentBufferSize);
       var transformer = new ContentTransformer({source: this.source, locus: this.type});
       buffer.forEach(function(item) {
-        item = transformer.prepare(item);
+        transformer.prepare(item);
       });
 
       Repo.contentRepository.insert(buffer, function(err, result) {
@@ -98,17 +94,20 @@ var S = (function () {
     FlowController.prototype.saveCursor = function(cursor, callback) {
       this.prepareCursorToSave(cursor);
       Repo.cursorRepository.save(cursor, function(err, result) {
+        if(err)
+          console.log(err);
+        
         if(callback)
           callback(err, result);
       });
     }
 
-    FlowController.prototype.collectorDataReceived = function(result, err) {
+    FlowController.prototype.collectorDataReceived = function(result, err, collector) {
       if(err) {
         console.log(err);
       } else {
         this.saveContents(result.contents);
-        this.saveCursor(result.cursor);
+        this.saveCursor(Object.merge(collector.cursor, result.cursor));
       }
     }
 
