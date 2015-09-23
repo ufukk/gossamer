@@ -10,7 +10,9 @@ var Tracker = {
     toCursor: function (location) {
         if(!location.source || !location.type || !location.id)
             throw new Error('Incomplete location info');
-        return Object.merge(location, {_id: Tracker.idForLocation(location), lastCollectedAt: 0, refreshRate: 0, priority: 1});
+        var defaultBackwardRatio = 0.33;
+        var defaultPriority = 1;
+        return Object.merge(location, {_id: Tracker.idForLocation(location), lastCollectedAt: 0, refreshRate: 0, priority: location.priority || defaultPriority, readOrder: 1, backwardRatio: location.backwardRatio || defaultBackwardRatio});
     },
 
     checkCursors: function (locations, callback) {
@@ -43,7 +45,8 @@ var Tracker = {
     },
 
     directionForCursor: function(cursor) {
-        return Math.ceil(Math.random() * 10) % 3 ? 'backward' : 'forward';
+        var backwardRatio = cursor.backwardRatio || 0.33;
+        return Math.ceil(Math.random() * 1000) > backwardRatio * 1000 ? 'forward' : 'backward';
     },
 
     findCursorsToRead: function(options, callback) {
@@ -51,7 +54,7 @@ var Tracker = {
             throw new Error('Cursor source is not specified');
         var limit = options.limit || 50;
         var filter = !options.type ? {source: options.source} : !options.id ? {source: options.source, type: options.type} : {source: options.source, type: options.type, id: options.id};
-        Repo.cursorRepository.find({filter: filter, sort: {priority: 1}, limit: limit}, function(err, result) {
+        Repo.cursorRepository.find({filter: filter, sort: {readOrder: 1}, limit: limit}, function(err, result) {
             callback(result.map(function(item) {
                 item.direction = Tracker.directionForCursor(item);
                 return item;
@@ -76,9 +79,18 @@ var Tracker = {
             });
 
             Repo.cursorRepository.insertOrUpdate(data, function(err, result) {
-                callback(result);
+                if(callback)
+                    callback(result);
             });
         });
+    },
+
+    trackKeywords: function(keywords, source, callback) {
+        var locations = [];
+        keywords.forEach(function(keyword) {
+            locations.push({source: source, type: 'keyword', id: keyword, backwardRatio: 0.9});
+        });
+        Tracker.trackLocations(locations, callback);
     }
 }
 
