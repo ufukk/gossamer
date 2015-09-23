@@ -7,6 +7,7 @@ var S = (function () {
       this.collectorProvider = options.collectorProvider;
       this.collectorDataReceived = options.collectorDataReceived;
       this.collectors = [];
+      this.context = options.context || undefined;
       this.runningCollectors = [];
       
       spawnerController.prototype.addCollectors = function (collectors) {
@@ -37,8 +38,8 @@ var S = (function () {
         var self = this;
           self.runningCollectors.push(collector);
           setTimeout(function() {
-            collector.readSource(function(result) {
-            self.collectorDataReceived(result);
+            collector.readSource(function(result, err) {
+            self.collectorDataReceived.call(self.context, result, err, collector);
             var index = self.runningCollectors.indexOf(this.parent);
             if(index > -1) {
               self.runningCollectors.splice(index, 1);
@@ -51,13 +52,15 @@ var S = (function () {
       spawnerController.prototype.checkAndUpdateControllers = function() {
         var self = this;
         if(this.collectors.length < this.number) {
-          if(typeof(this.collectorProvider) != 'function')
+          if(typeof(this.collectorProvider) != 'function') {
             return;
-          this.collectorProvider(this.number - this.collectors.length, function (err, collectors) {
+          }
+          this.collectorProvider.call(self.context, this.number - this.collectors.length, function (collectors, err) {
           if(err)
             console.log(err);
           
           if(collectors.length == 0) {
+            console.log('no collectors');
             return;
           }
 
