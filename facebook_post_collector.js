@@ -1,3 +1,4 @@
+var Config = require('./config');
 var Collector = require('./collector');
 var FB = require('fb');
 var util = require('util');
@@ -15,7 +16,7 @@ function FacebookPostCollector(options) {
 	this.until = options.cursor.newest || null;
 	this.limit = options.cursor.limit || 100;
 	this.positionColumn = 'created_time'
-	this.fields = ['id', 'created_time', 'message', 'is_popular', 'comments.limit(100).summary(true)', 'likes.limit(1).summary(true)']
+	this.fields = ['id', 'created_time', 'message', 'from', 'is_popular', 'comments.limit(1).summary(true)', 'likes.limit(1).summary(true)']
 	var self = this
 
 	this.parameters = function() {
@@ -30,6 +31,7 @@ function FacebookPostCollector(options) {
 	}
 
 	this.readSource = function(callback) {
+		FB.setAccessToken(Config.Facebook.accessToken);
 		FB.api('/' + self.pageId + '/posts', self.parameters(), function(result) {
 			if(result.error)
 				console.log(result.error);
@@ -38,7 +40,7 @@ function FacebookPostCollector(options) {
 				if(!('comments' in item))
 					return item
 				item = Object.merge(item, {commentCursor: Object.merge(item.comments.paging, Collector.cursorInfo('created_time', item.comments.data))});
-				item.commentCursor.parentCreationDate = Date.parse(item.created_time);
+				item.author = {name: item.from.name, id: item.from.id};
 				return item;
 			});
 			forwardParameters = Collector.queryParameters(result['paging']['previous']);

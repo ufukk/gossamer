@@ -57,7 +57,7 @@ var S = (function () {
 
               if(contentDate > newest || newest == 0)
                 newest = contentDate;
-              result.push({id: item['$']['data-id'], author: item['$']['data-author'], body: item['div'][0]['_'], contentDate: contentDate});
+              result.push({id: item['$']['data-id'], author: {name: item['$']['data-author']}, body: item['div'][0]['_'], contentDate: contentDate});
             });
             if(pagingElement == null) {
               pagingElement = [0, 1, 1];
@@ -67,7 +67,7 @@ var S = (function () {
             callback.call({parent: self}, {contents: result, cursor: {currentPage: pagingElement[1], pageCount: pagingElement[2], newest: newest, oldest: oldest }});
           });
       });
-          
+
     }
 
   }
