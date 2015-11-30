@@ -7,17 +7,17 @@ var S = (function() {
     options = options || {};
     if(!options.cursor)
       throw new Error('Missing cursor');
-
     this.cursor = options.cursor;
+    var self = this;
 
     EksiSozlukKeywordIndexer.prototype.convertSearchTermToUrl = function(searchTerm, page) {
-      page = page || 1;
       return 'https://eksisozluk.com/basliklar/ara?searchForm.Keywords=' + encodeURIComponent(searchTerm) + '&searchForm.Author=&searchForm.When.From=&searchForm.When.To=&searchForm.NiceOnly=false&searchForm.SortOrder=Date&p=' + page
     }
 
     EksiSozlukKeywordIndexer.prototype.readSource = function(callback) {
       var listPattern = /<ul class="topic-list"[^>]*>([.\s\S]*?)<\/ul>/gi;
-      https.get(this.convertSearchTermToUrl(this.cursor.id, this.cursor.page), function(response) {
+      self.cursor.page = self.cursor.page || 1;
+      https.get(this.convertSearchTermToUrl(self.cursor.locationId, self.cursor.page), function(response) {
         var output = '';
         response.on('data', function(chunk) {
           output += chunk;
@@ -38,7 +38,7 @@ var S = (function() {
             xmlObject.ul.li.forEach(function(item) {
               contents.push({source: 'eksisozluk', type: 'page', id: item.a[0]._.trim(), collectedAt: now});
             });
-
+            self.cursor.page++;
             callback({contents: contents, cursor: cursor});
           });
 

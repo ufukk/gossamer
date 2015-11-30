@@ -24,7 +24,6 @@ var S = (function() {
     return collector;
   }
 
-
   return EksiSozlukFlowController;
 })();
 

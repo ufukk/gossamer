@@ -35,7 +35,7 @@ var S = (function () {
 
     EksiSozlukCollector.prototype.readSource = function(callback) {
       var self = this;
-      var url = this.convertKeywordToUrl(this.cursor.id, this.cursor);
+      var url = this.convertKeywordToUrl(this.cursor.locationId, this.cursor);
       var listPattern = /<([\w]+)[ ]*id\="entry\-list">([.\s\S]*?)<\/\1>/gi;
       request.get(url, function(err, response, output) {
         var content = listPattern.exec(output);
@@ -64,6 +64,7 @@ var S = (function () {
             }
 
             Collector.normalizeContents(result, {dateColumn: 'contentDate', orderIdColumn: 'id'});
+            Collector.filterContentsByDate(result, self.cursor.direction, self.cursor);
             callback.call({parent: self}, {contents: result, cursor: {currentPage: pagingElement[1], pageCount: pagingElement[2], newest: newest, oldest: oldest }});
           });
       });
