@@ -12,7 +12,7 @@ var Tracker = {
             throw new Error('Incomplete location info');
         var defaultBackwardRatio = 0.33;
         var defaultPriority = 1;
-        return Object.merge(location, {_id: Tracker.idForLocation(location), lastCollectedAt: 0, refreshRate: 0, priority: location.priority || defaultPriority, readOrder: 1, backwardRatio: location.backwardRatio || defaultBackwardRatio});
+        return Object.merge(location, {id: Tracker.idForLocation(location), locationId: location.id, lastCollectedAt: 0, refreshRate: 0, priority: location.priority || defaultPriority, readOrder: 1, backwardRatio: location.backwardRatio || defaultBackwardRatio});
     },
 
     checkCursors: function (locations, callback) {
@@ -40,13 +40,15 @@ var Tracker = {
             }).map(function(item) {
                 return Tracker.toCursor(item);
             });
-            Repo.cursorRepository.insert(list);
+            Repo.cursorRepository.bulkUpdate(list);
         });
     },
 
     directionForCursor: function(cursor) {
-        var backwardRatio = cursor.backwardRatio || 0.33;
-        return Math.ceil(Math.random() * 1000) > backwardRatio * 1000 ? 'forward' : 'backward';
+      if(cursor.lastCollectedAt > new Date().getTime() - (60 * 60 * 24 * 1000))
+        return 'backward';
+      var backwardRatio = cursor.backwardRatio || 0.33;
+      return Math.ceil(Math.random() * 1000) > backwardRatio * 1000 ? 'forward' : 'backward';
     },
 
     findCursorsToRead: function(options, callback) {
@@ -54,33 +56,36 @@ var Tracker = {
             throw new Error('Cursor source is not specified');
         var limit = options.limit || 50;
         var filter = !options.type ? {source: options.source} : !options.id ? {source: options.source, type: options.type} : {source: options.source, type: options.type, id: options.id};
-        Repo.cursorRepository.find({filter: filter, sort: {readOrder: 1}, limit: limit}, function(err, result) {
-            callback(result.map(function(item) {
+        Repo.cursorRepository.find({filter: filter, sort: {readOrder: 'asc'}, limit: limit}, function(err, rows, result) {
+            if(err)
+              console.log(err);
+            callback(rows.map(function(item) {
                 item.direction = Tracker.directionForCursor(item);
                 return item;
-            }));
+            }), err);
         });
     },
 
     updateCursors: function(cursors, callback) {
         var idList = cursors.map(function(item) {
-            return item._id ? item._id : Tracker.idForLocation(item);
+            return item.id ? item.id : Tracker.idForLocation(item);
         });
-        Repo.cursorRepository.find({_id: {$in: idList}}, function(err, result) {
+        Repo.cursorRepository.find({id: idList}, function(err, rows, result) {
+            console.log(idList);
             var data = [];
             var map = {};
-            result.forEach(function(item) {
-                map[item._id] = item;
+            rows.forEach(function(item) {
+                map[item.id] = item;
             });
 
             cursors.forEach(function(item) {
-                var _id = Tracker.idForLocation(item);
-                data.push(_id in map ? Object.merge(map[_id], item) : Tracker.toCursor(item));
+                var id = Tracker.idForLocation(item);
+                data.push(id in map ? Object.merge(map[id], item) : Tracker.toCursor(item));
             });
 
-            Repo.cursorRepository.insertOrUpdate(data, function(err, result) {
+            Repo.cursorRepository.bulkUpdate(data, function(err, result) {
                 if(callback)
-                    callback(result);
+                    callback(err, result);
             });
         });
     },

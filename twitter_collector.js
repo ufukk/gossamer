@@ -40,7 +40,8 @@ function TwitterCollector(options) {
 		twitter.get('search/tweets', Object.merge({'q': self.searchQuery()}, self.cursorParameters), function(error, data, response) {
 			if(error)
 				console.log(error)
-			callback({contents: data.statuses, cursor: self.cursorInfo(data)})
+			Collector.normalizeContents(data.statuses, {dateColumn: 'created_at', columns.orderIdColumn: 'created_at'});
+			callback.call({parent: self}, {contents: data.statuses, cursor: self.cursorInfo(data)})
 		})
 	}
 }

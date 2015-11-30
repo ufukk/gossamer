@@ -4,21 +4,20 @@ var Spawner = require('./spawner');
 var ContentTransformer = require('./content_transformer');
 
 var S = (function () {
-  
+
   var FlowController = function (options) {
     options = options || {};
     this.threadCount = 3;
-    this.threadInterval = 200;
+    this.threadInterval = 500;
     this.contentBuffer = [];
     this.contentBufferSize = 10;
     this.indexerLimit = 1;
-    this.indexerInterval = 1000;
     this.indexerTimer = null;
     this.indexerRunning = false;
 
     FlowController.prototype.fetchCursors = function(number, callback) {
       var self = this;
-      Repo.cursorRepository.find({filter: {source: self.source, type :self.type}, sort: {readOrder: 1}, limit: number}, function(err, result) {
+      Repo.cursorRepository.find({filter: {source: self.source, type :self.type}, sort: {readOrder: 'asc'}, limit: number}, function(err, result) {
         if(err)
           console.log(err);
         result = self.prepareCursorForSpawner(result);
@@ -37,7 +36,6 @@ var S = (function () {
       if(this.indexerRunning)
         return;
 
-      console.log('indexer...');
       this.indexerRunning = true;
       var self = this;
       Tracker.findCursorsToRead({source: self.source, type: 'keyword', sort: [{readOrder: 1}], limit: self.indexerLimit}, function(result, err) {
@@ -57,13 +55,13 @@ var S = (function () {
             console.log(err);
 
           Tracker.trackLocations(result.contents);
-
           if(indexSpawner.collectors.length == 0 && indexSpawner.runningCollectors.length == 1) {
             Object.merge(collector.cursor, result.cursor);
             self.prepareCursorToSave(collector.cursor);
             self.indexerRunning = false;
-
-            Tracker.updateCursors([collector.cursor]);
+            Tracker.updateCursors([collector.cursor], function(err, result) {
+              
+            });
           }
         }
         indexSpawner.startCollectors();
@@ -72,21 +70,29 @@ var S = (function () {
 
     FlowController.prototype.saveContents = function(contents, callback) {
       this.contentBuffer = this.contentBuffer.concat(contents);
+      if(this.contentBuffer.length < this.contentBufferSize) {
+        console.log('Buffered ' + this.contentBuffer.length + ' items');
+        return;
+      }
       var buffer = this.contentBuffer.splice(0, this.contentBufferSize);
       var transformer = new ContentTransformer({source: this.source, locus: this.type});
       buffer.forEach(function(item) {
         transformer.prepare(item);
       });
 
-      Repo.contentRepository.insert(buffer, function(err, result) {
-        if(err)
+      Repo.contentRepository.bulkUpdate(buffer, function(err, result) {
+        if(err) {
+          console.log('save error: ');
           console.log(err);
-        else if(callback)
+        } else if(callback) {
           callback(err, result);
+          console.log('saved ' + buffer.length + ' items.');
+        }
       });
     }
 
     FlowController.prototype.prepareCursorToSave = function(cursor) {
+      cursor.direction = undefined;
       cursor.lastCollectedAt = Date.now();
       cursor.readOrder = cursor.priority * cursor.lastCollectedAt / 1000000000000;
     }
@@ -94,9 +100,9 @@ var S = (function () {
     FlowController.prototype.saveCursor = function(cursor, callback) {
       this.prepareCursorToSave(cursor);
       Repo.cursorRepository.save(cursor, function(err, result) {
-        if(err)
+        if(err) {
           console.log(err);
-        
+        }
         if(callback)
           callback(err, result);
       });
@@ -132,20 +138,24 @@ var S = (function () {
     FlowController.prototype.startIndexer = function() {
       if(typeof(this.getIndexer) != 'function')
         return;
+      if(!this.indexerInterval)
+        this.indexerInterval = 3000;
+      console.log(this.indexerInterval);
       var self = this;
-      this.indexerTimer = setInterval(function() { 
+      this.indexerTimer = setInterval(function() {
         self.runIndexer.call(self);
       }, this.indexerInterval);
     }
 
     FlowController.prototype.stopIndexer = function() {
-      clearInterval(this.indexerTimer);  
+      clearInterval(this.indexerTimer);
     }
 
     FlowController.prototype.startFlow = function() {
       var self = this;
-      this.spawner = new Spawner.SpawnerController({context: self, collectorProvider: self.collectorProvider, collectorDataReceived: self.collectorDataReceived, number: self.threadCount, interval: self.threadInterval}); 
+      this.spawner = new Spawner.SpawnerController({context: self, collectorProvider: self.collectorProvider, collectorDataReceived: self.collectorDataReceived, number: self.threadCount, interval: self.threadInterval});
       this.spawner.startCollectors();
+      this.startIndexer();
     }
   }
 

@@ -9,7 +9,7 @@ var S = (function () {
       this.collectors = [];
       this.context = options.context || undefined;
       this.runningCollectors = [];
-      
+
       spawnerController.prototype.addCollectors = function (collectors) {
         this.collectors = this.collectors.concat(collectors);
       }
@@ -41,6 +41,7 @@ var S = (function () {
             collector.readSource(function(result, err) {
             self.collectorDataReceived.call(self.context, result, err, collector);
             var index = self.runningCollectors.indexOf(this.parent);
+            console.log(index);
             if(index > -1) {
               self.runningCollectors.splice(index, 1);
             }
@@ -58,7 +59,7 @@ var S = (function () {
           this.collectorProvider.call(self.context, this.number - this.collectors.length, function (collectors, err) {
           if(err)
             console.log(err);
-          
+
           if(collectors.length == 0) {
             console.log('no collectors');
             return;
