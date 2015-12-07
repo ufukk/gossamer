@@ -2,6 +2,7 @@ var Repo = require('./repository');
 var Tracker = require('./tracker');
 var Spawner = require('./spawner');
 var ContentTransformer = require('./content_transformer');
+var LoggerStack = require('./logger_stack');
 
 var S = (function () {
 
@@ -60,7 +61,8 @@ var S = (function () {
             self.prepareCursorToSave(collector.cursor);
             self.indexerRunning = false;
             Tracker.updateCursors([collector.cursor], function(err, result) {
-              
+                if(err)
+                    console.log(err);
             });
           }
         }
@@ -140,7 +142,6 @@ var S = (function () {
         return;
       if(!this.indexerInterval)
         this.indexerInterval = 3000;
-      console.log(this.indexerInterval);
       var self = this;
       this.indexerTimer = setInterval(function() {
         self.runIndexer.call(self);
@@ -153,6 +154,7 @@ var S = (function () {
 
     FlowController.prototype.startFlow = function() {
       var self = this;
+      self.logger = LoggerStack.getFlowLogger(self.source);
       this.spawner = new Spawner.SpawnerController({context: self, collectorProvider: self.collectorProvider, collectorDataReceived: self.collectorDataReceived, number: self.threadCount, interval: self.threadInterval});
       this.spawner.startCollectors();
       this.startIndexer();
