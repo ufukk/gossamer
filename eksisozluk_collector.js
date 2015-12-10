@@ -6,23 +6,31 @@ var request = require('request');
 
 var S = (function () {
 
-  var urlPrefix = 'https://eksisozluk.com/';
+  var urlPrefix = 'https://eksisozluk.com';
 
   var EksiSozlukCollector = function (options) {
+    var self = this;
     options = options || {};
     if(!options.cursor)
       throw new Error('Missing cursor');
 
     this.cursor = options.cursor;
 
-    EksiSozlukCollector.prototype.convertKeywordToUrl = function (keyword, params) {
-      params = params || {};
-      var direction = params.direction || null;
+    EksiSozlukCollector.prototype.findUrl = function (callback) {
+      var direction = this.cursor.direction || null;
       var queryParams = {};
-      if(params.currentPage && params.pageCount && params.pageCount > 1) {
-        queryParams.p = direction == 'forward' ? params.page + 1 : params.currentPage + 1;
+      if(this.cursor.currentPage && this.cursor.pageCount && this.cursor.pageCount > 1) {
+        queryParams.p = direction == 'forward' ? 1 : parseInt(this.cursor.currentPage) + 1;
       }
-      return urlPrefix + encodeURIComponent(keyword) + Collector.queryString(queryParams);
+      if(direction == 'forward' || this.cursor.href) {
+        callback(urlPrefix + this.cursor.href + Collector.queryString(queryParams));
+        return;
+      }
+
+      request({url: urlPrefix + '/' + encodeURIComponent(this.cursor.locationId), followRedirect: false}, function(err, response) {
+          self.cursor.href = response.headers.location;
+          callback(urlPrefix + self.cursor.href + Collector.queryString(queryParams));
+      });
     }
 
     EksiSozlukCollector.prototype.dateFromString = function(dateString) {
@@ -35,12 +43,14 @@ var S = (function () {
 
     EksiSozlukCollector.prototype.readSource = function(callback) {
       var self = this;
-      var url = this.convertKeywordToUrl(this.cursor.locationId, this.cursor);
       var listPattern = /<([\w]+)[ ]*id\="entry\-list">([.\s\S]*?)<\/\1>/gi;
-      request.get(url, function(err, response, output) {
+      this.findUrl(function(url) {
+        request.get(url, function(err, response, output) {
         var content = listPattern.exec(output);
-          if(content == null)
-            console.log(url);
+          if(content == null) {
+              callback.call({parent: self}, {contents: null, cursor:self.cursor}, 'keyword error: ' + url);
+              return;
+          }
           parseString(content, function(err, xmlObject) {
             if(err)
               console.log(err);
@@ -64,9 +74,11 @@ var S = (function () {
             }
 
             Collector.normalizeContents(result, {dateColumn: 'contentDate', orderIdColumn: 'id'});
-            Collector.filterContentsByDate(result, self.cursor.direction, self.cursor);
+            result = Collector.filterContentsByDate(result, self.cursor.direction, self.cursor);
             callback.call({parent: self}, {contents: result, cursor: {currentPage: pagingElement[1], pageCount: pagingElement[2], newest: newest, oldest: oldest }});
           });
+      });
+
       });
 
     }

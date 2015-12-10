@@ -47,6 +47,7 @@ describe('Trackers catalog and classify locations that collectors read', functio
 		assert.equal(cursor.lastCollectedAt, 0);
 		assert.equal(cursor.refreshRate, 0);
 		assert.equal(cursor.priority, 1);
+		assert.ok(cursor.backwardRatio > 0 && cursor.backwardRatio < 1);
 		assert.equal(cursor._id, 'facebook_page_101');
 	});
 
@@ -62,7 +63,7 @@ describe('Trackers catalog and classify locations that collectors read', functio
 	it('should save locations as cursors to track', function(done) {
 		Tracker.trackLocations([{source: 'facebook', type :'page', 'id': 101}, {source: 'facebook', type :'page', 'id': 10}]);
 		var call = Repo.cursorRepository.insert.getCall(0);
-		assert.deepEqual(call.args[0], [{source: 'facebook', type :'page', id: 10, _id: 'facebook_page_10', lastCollectedAt: 0, refreshRate: 0, priority: 1}]);
+		assert.deepEqual(call.args[0], [{source: 'facebook', type :'page', id: 10, _id: 'facebook_page_10', lastCollectedAt: 0, refreshRate: 0, priority: 1, readOrder: 1, backwardRatio: 0.33}]);
 		done();
 	});
 
@@ -92,7 +93,7 @@ describe('Trackers catalog and classify locations that collectors read', functio
 		]);
 		var call = Repo.cursorRepository.insertOrUpdate.getCall(0);
 		assert.deepEqual(call.args[0][0], {_id: 'fb_page_101', source: 'fb', type: 'page', id: 101, newest: 1005, oldest: 990, id: 101, lastCollectedAt: Date.parse('01/05/2015 12:00:00'), refreshRate: 0.0001, priority: 1.0001});
-		assert.deepEqual(call.args[0][1], {_id: 'fb_page_102', source: 'fb', type: 'page', id: 102, newest: 2001, oldest: 1001, lastCollectedAt: 0, refreshRate: 0, priority: 1});
+		assert.deepEqual(call.args[0][1], {_id: 'fb_page_102', source: 'fb', type: 'page', id: 102, newest: 2001, oldest: 1001, lastCollectedAt: 0, refreshRate: 0, priority: 1, backwardRatio: 0.33, readOrder: 1});
 		done();
 	});
 });

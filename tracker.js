@@ -1,5 +1,6 @@
 require('sugar');
 var Repo = require('./repository');
+var LoggerStack = require('./logger_stack');
 
 var Tracker = {
 
@@ -19,14 +20,14 @@ var Tracker = {
         var cursorIds = [];
         var map = {};
         locations.forEach(function(location) {
-            location = location._id ? location._id : location.source ? Tracker.idForLocation(location) : location;
+            location = location.id ? location.id : location.source ? Tracker.idForLocation(location) : location;
             cursorIds.push(location);
             map[location] = false;
         });
 
-        Repo.cursorRepository.find({_id: {$in: cursorIds}}, function(err, result) {
+        Repo.cursorRepository.find({filter: {id: cursorIds}}, function(err, result) {
             result.forEach(function(item) {
-                map[item._id] = true;
+                map[item.id] = true;
             });
 
             callback(map);
@@ -70,24 +71,25 @@ var Tracker = {
         var idList = cursors.map(function(item) {
             return item.id ? item.id : Tracker.idForLocation(item);
         });
-        Repo.cursorRepository.find({id: idList}, function(err, rows, result) {
-            console.log(idList);
-            var data = [];
-            var map = {};
-            rows.forEach(function(item) {
-                map[item.id] = item;
+
+            Repo.cursorRepository.find({filter: {id: idList}}, function(err, rows, result) {
+                var data = [];
+                var map = {};
+                rows.forEach(function(item) {
+                    map[item.id] = item;
+                });
+
+                cursors.forEach(function(item) {
+                    var id = item.id && item.id.length > 1 ? item.id : Tracker.idForLocation(item);
+                    data.push(id in map ? Object.merge(map[id], item) : Tracker.toCursor(item));
+                });
+
+                Repo.cursorRepository.bulkUpdate(data, function(err, result) {
+                    if(callback)
+                        callback(err, result);
+                });
             });
 
-            cursors.forEach(function(item) {
-                var id = Tracker.idForLocation(item);
-                data.push(id in map ? Object.merge(map[id], item) : Tracker.toCursor(item));
-            });
-
-            Repo.cursorRepository.bulkUpdate(data, function(err, result) {
-                if(callback)
-                    callback(err, result);
-            });
-        });
     },
 
     trackKeywords: function(keywords, source, callback) {

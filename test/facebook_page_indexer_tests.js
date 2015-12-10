@@ -63,6 +63,8 @@ describe('FacebookPageIndexer finds pages to track for a given keyword', functio
     indexer.readSource(function(result) {
       assert.equal(result.contents.length, 3);
       assert.equal(result.contents[0].id, '101');
+      assert.equal(result.contents[0].source, 'facebook');
+      assert.equal(result.contents[0].type, 'page');
       assert.equal(result.contents[2].id, '103');
       assert.equal(result.cursor.before, '__before');
       assert.equal(result.cursor.after, '__after');

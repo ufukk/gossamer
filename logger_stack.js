@@ -8,12 +8,17 @@ var LoggerStack = (function() {
         this.options = options;
         var self = this;
         this.stream = new winston.Logger({
+            level: 'debug',
             transports: [
-                new winston.transports.File({filename: 'logs/flows/' + self.source + '.log', json: false})
+                new winston.transports.File({filename: 'logs/flows/' + self.source + '.log.txt', json: false})
             ]
         });
     }
     
+    logger.prototype.debug = function(label, obj) {
+        this.stream.log('debug', '%s: %s', label, JSON.stringify(obj));
+    }
+
     logger.prototype.info = function(message) {
         this.stream.log('info', '- %s', message);
     }

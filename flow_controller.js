@@ -8,7 +8,7 @@ var S = (function () {
 
   var FlowController = function (options) {
     options = options || {};
-    this.threadCount = 3;
+    this.threadCount = 1;
     this.threadInterval = 500;
     this.contentBuffer = [];
     this.contentBufferSize = 10;
@@ -112,9 +112,12 @@ var S = (function () {
 
     FlowController.prototype.collectorDataReceived = function(result, err, collector) {
       if(err) {
-        console.log(err);
-      } else {
+        this.logger.error(err);
+      }
+      if(result.contents && result.contents.length > 0) {
         this.saveContents(result.contents);
+      }
+      if(result.cursor) {
         this.saveCursor(Object.merge(collector.cursor, result.cursor));
       }
     }
@@ -157,7 +160,7 @@ var S = (function () {
       self.logger = LoggerStack.getFlowLogger(self.source);
       this.spawner = new Spawner.SpawnerController({context: self, collectorProvider: self.collectorProvider, collectorDataReceived: self.collectorDataReceived, number: self.threadCount, interval: self.threadInterval});
       this.spawner.startCollectors();
-      this.startIndexer();
+      //this.startIndexer();
     }
   }
 

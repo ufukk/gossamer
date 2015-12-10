@@ -86,7 +86,7 @@ var Repository = (function() {
 				body.sort = undefined;
 				body.query = {function_score: {query: body.query, random_score: {}}};
 			}
-			client.search({index: ctx.index, type: ctx.type, body: body}, function(err, result) {
+            client.search({index: ctx.index, type: ctx.type, body: body}, function(err, result) {
 				ctx.callback(err, result && result != null && result.hits ? self.normalizeRows(result.hits.hits) : null, result);
 			})
 		}
